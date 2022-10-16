@@ -9,28 +9,35 @@ namespace ScreenShare.Client
     // Provided by Networking module
     internal class ScreenShareClient : ICommunicatorListener
     {
+
         // The Networking object to send packets and subscribe to it
         // Initialized in the constructor
         // Will have `SendMessage` and `Subscribe`
         private ICommunicator _communicator;
 
-        // The threads to send the packets to the network
-        // Will be made by `SendImagePacket()` and `SendConfirmationPacket` methods
-        private Thread _sendImageThread, _sendConfirmationThread;
+        // The tasks to send the packets to the network
+        // Will be created by `SendImagePacket()` and `SendConfirmationPacket` methods
+        private Task _sendImageTask, _sendConfirmationTask;
+
+        private ScreenCapturer _capturer;
+        private ScreenProcessor _processor;
 
         // Called by view model
         // Subscribe the networking by calling `_communicator.Subscribe()`
+        // Creates the objects of `ScreenCapturer` and `ScreenProcessor`
         ScreenShareClient() {}
 
         // This method will be called by the ViewModel
         // Sends register request to the server by calling `_communicator.SendMessage()`
-        // Call the methods `SendImage`, `SendConfirmationPacket` and `Contoller.StartSharing`
+        // Call the methods `StartImageSending`, `SendConfirmationPacket`
+        // Call the methods `_capturer.StartCapturing()` and `_processor.StartProcessing()`
         public void StartScreenSharing() {}
 
         // This method will be called by the ViewModel
         // Sends de-register request to the server by calling `_communicator.SendMessage()`
-        // Calls the method `StopSending` and `Controller.StopSharing()`
-        // Kill the `sendConfirmationThread`
+        // Calls the method `StopImageSending`
+        // Calls the method `capturer.stop` and `processor.stop`
+        // Kill the `_sendConfirmationTask` task
         public void StopScreenSharing() {}
 
         // From the interface
@@ -38,30 +45,36 @@ namespace ScreenShare.Client
         // This method will be invoked by the networking team
         // This will be the request/response packets from the server
         /*
-         * STOP: Controller.SuspendSharing and SuspendSending
-         * SEND: Controller.ResumeSharing and ResumeSending
+         * STOP: SuspendSending()
+         * SEND: ResumeSending(), SetNewResolution()
          */
         void OnMessageReceived(packet) {}
 
-        // This method will start the thread `sendImageThread` for the lambda function
-        // The lambda function will read the processed frames from that queue
+        // This method will create the task `_sendImageTask` for the lambda function
+        // The lambda function will read the image from the _processor queue using GetImage
         // and start sending those images to the server using `_communicator.SendMessage`
-        // After creating the thread, Suspend the thread immediately
-        private void SendImage() {}
+        private void StartImageSending() {}
 
-        // Suspend the `sendImageThread`
-        private void SuspendSending() { }
+        // Kill the task `_sendImageTask` using cancellation token
+        private void SuspendImageSending() { }
 
-        // Resume the thread `sendImageThread`
-        private void ResumeSending() { }
+        // Create the task `_sendImageTask` only if it is null
+        // Start the task
+        private void ResumeImageSending() { }
 
-        // Stop the thread `sendImageThread`
-        private void StopSending() { }
+        // Kill the task `_sendImageTask`
+        private void StopImageSending() { }
 
-        // This method will start the thread which it will keep on
+        // This method will create and start the task which it will keep on
         // sending the packet having the header as confirmation using `_communicator.SendMessage`
         // to let the server and the dashboard know that the client is not
-        // disconnected and is still presenting his screen.
+        // disconnected and is still presenting the screen.
         public void SendConfirmationPacket() {}
+
+        public void SetNewResolution()
+        {
+            // update the new resolution to be used by the Processor
+            // processor.setNewResolution()
+        }
     }
 }

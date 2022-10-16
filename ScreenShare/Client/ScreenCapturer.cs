@@ -6,49 +6,43 @@ using System.Threading.Tasks;
 
 namespace ScreenShare.Client
 {
-    // Singleton class
-    internal static class ScreenCapturer
+    internal class ScreenCapturer
     {
         // The queue in which the image will be enqueued after
         // capturing it
-        private static Queue<Bitmap> _capturedFrame;
+        private Queue<Bitmap> _capturedFrame;
 
-        public static Queue<Bitmap> CapturedFrame
-        {
-            // get: pops and return the first frame
-            get;
-            private set;
-        }
-
-        // The threads that will be started to capture the screen
+        // The task that will be started to capture the screen
         // and to send the packets to the network
         // Created in Capture function
-        private static Thread _captureThread;
+        private Task _captureTask;
 
-        // Called by controller
-        // Initialize queue
-        static ScreenCapturer() { }
+        // Called by ScreenShareClient
+        // Initialize
+        ScreenCapturer() { }
+
+        // Pops and return the image from the queue
+        public Bitmap GetImage() { }
 
         // Only called when client starts screen sharing
-        // Called by ScrenController
+        // Called by ScreenShareClient
         // Will have a lambda function - Captures and pushes to the queue
-        // Run the lambda function on capture_thread
-        // Suspend the thread immediately
-        public static void StartCapture();
-
-        // Called when the server asks to stop
-        // Suspend the thread
-        // Empty the queue
-        public static void SuspendCapture();
+        // Create the task for the lambda function
+        public void StartCapture();
 
         // Called when the server asks to send
-        // Resume the thread
-        public static void ResumeCapture();
+        // Create a new task again if not already there
+        public void ResumeCapture();
+
+        // Called when the server asks to stop
+        // Kill the task and make the variable null
+        // Empty the queue
+        public void SuspendCapture();
 
         // Only called when client stops screen sharing
-        // Will be called by the controller
-        // kill the capture thread and make the capture_thread variable null
-        // Empty the Queue
-        public static void StopCapture();
+        // Will be called by the ScreenShareClient
+        // kill the task and make the task variable null
+        // Empty the queue
+        public void StopCapture();
     }
 }

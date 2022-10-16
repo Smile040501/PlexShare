@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ScreenShare.Client
 {
     // Singleton class
-    internal static class ScreenProcessor
+    internal class ScreenProcessor
     {
         // The queue in which the image will be enqueued after
         // processing it
@@ -17,49 +17,47 @@ namespace ScreenShare.Client
          * list of : ( (new_res) , list of : {x, y, (R,G,B)} )
          *
          */
-        private static Queue<Frame> _processedFrame;
+        private Queue<Frame> _processedFrame;
 
-        public static Queue<Frame> ProcessedFrame
-        {
-            // Get pops and return the first frame
-            get;
-            private set;
-        }
+        // Processing task
+        private Task _processorTask;
 
-        // Processing thread
-        private static Thread _processorThread;
+        // The screen capturer object
+        private ScreenCapturer _capturer;
 
-        public static Pair<int, int> OldRes { get; set; }   // Do we need this?
-        public static Pair<int, int> NewRes { get; set; }
+        private Pair<int, int> OldRes { get; set; }   // Do we need this?
+        public Pair<int, int> NewRes { private get; set; }
 
-        // Called by controller
+        // Called by ScreenShareClient
         // Initialize queue, oldRes, newRes
         // Called by ScreenShareController
-        static ScreenProcessor() { }
+        ScreenProcessor(ScreenCapturer capturer) { }
 
-        // Called by controller when the client starts screen sharing
+        // Pops and return the image from the queue
+        public Bitmap GetImage() { }
+
+        // Called by ScreenShareClient when the client starts screen sharing
         // Will have a lambda function - Process and pushes to the queue
-        // Run the lambda function on processed_thread
-        // Suspend the thread immediately
-        public static void StartProcessing();
+        // Create the task for the lambda function
+        public void StartProcessing();
 
         // Called when the server asks to stop
-        // Suspend the thread
+        // Kill the task
         // Empty the queue
-        public static void SuspendProcessing();
+        public void SuspendProcessing();
 
         // Called when the server asks to send
         // Resume the thread
-        public static void ResumeProcessing();
+        public void ResumeProcessing();
 
-        // Called by controller when the client stops screen sharing
-        // kill the processor thread and make the processor_thread variable null
+        // Called by ScreenShareClient when the client stops screen sharing
+        // kill the processor task and make the processor task variable null
         // Empty the Queue
-        public static void StopProcessing();
+        public void StopProcessing();
 
         // Called by StartProcessing
         // run the compression algorithm and returns list of changes in pixels
         // Does it need to be public?
-        public static void Compress();
+        public void Compress();
     }
 }
