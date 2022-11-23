@@ -10,7 +10,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -121,6 +124,15 @@ namespace PlexShareScreenshare.Server
             _currentPageColumns = InitialNumberOfCols;
             _isPopupOpen = false;
             _popupText = "";
+
+            List<SharedClientScreen> clients = new();
+            for (int i = 0; i < 30; ++i)
+            {
+                bool hi = new();
+                clients.Add(new((i + 1).ToString(), (i + 1000).ToString(), _model, isDebugging));
+            }
+
+            OnSubscribersChanged(clients);
 
             Trace.WriteLine(Utils.GetDebugMessage("Successfully created an instance for the view model", withTimeStamp: true));
         }
@@ -720,6 +732,18 @@ namespace PlexShareScreenshare.Server
             return (tileHeight, tileWidth);
         }
 
+        private static Random RandomGenerator { get; } = new(DateTime.Now.Second);
+
+        public static Bitmap GetMockBitmap()
+        {
+            // Create a WebClient to get the image from the URL.
+            using WebClient client = new();
+            // Image stream read from the URL.
+            using Stream stream = client.OpenRead($"https://source.unsplash.com/random/400x400?sig={RandomGenerator.Next() + 1}");
+            Bitmap image = new(stream);
+            return image;
+        }
+
         /// <summary>
         /// Starts the processing task for the clients.
         /// </summary>
@@ -743,7 +767,8 @@ namespace PlexShareScreenshare.Server
                         {
                             try
                             {
-                                Bitmap? finalImage = client.GetFinalImage(ref cancellationToken);
+                                //Bitmap? finalImage = client.GetFinalImage(ref cancellationToken);
+                                Bitmap? finalImage = GetMockBitmap();
 
                                 if (finalImage == null) continue;
 
@@ -793,7 +818,7 @@ namespace PlexShareScreenshare.Server
             {
                 try
                 {
-                    client.StopProcessing();
+                    Task.Run(() => client.StopProcessing());
                 }
                 catch (Exception e)
                 {

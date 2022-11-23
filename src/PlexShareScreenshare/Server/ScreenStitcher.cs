@@ -62,7 +62,7 @@ namespace PlexShareScreenshare.Server
         }
 
         /// <summary>
-        /// Uses the 'diff' image curr and the previous image to find the 
+        /// Uses the 'diff' image curr and the previous image to find the
         /// current image. This method is used when the client sends a diff
         /// instead of entire image to server.
         /// </summary>
@@ -155,6 +155,8 @@ namespace PlexShareScreenshare.Server
         /// </summary>
         public void StopStitching()
         {
+            if (_stitchTask == null) return;
+
             try
             {
                 _cancellationToken = true;

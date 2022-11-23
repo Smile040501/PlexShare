@@ -242,6 +242,8 @@ namespace PlexShareScreenshare.Server
         /// </param>
         public void BroadcastClients(List<string> clientIds, string headerVal, (int Rows, int Cols) numRowsColumns)
         {
+            if (_communicator == null) return;
+
             Debug.Assert(_communicator != null, Utils.GetDebugMessage("_communicator is found null"));
             Debug.Assert(clientIds != null, Utils.GetDebugMessage("list of client Ids is found null"));
 
